@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Tenants · Storage Unit Manager{% endblock %}
+{% block nav_tenants_active %}active{% endblock %}
+
+{% block css %}
+<style>
+    .card-rounded { border-radius: 1rem; }
+    .table thead th { font-weight: 600; color: #6c757d; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.02em; }
+    .table td { vertical-align: middle; }
+    .badge-soft { background: #e7f1ff; color: #0d6efd; }
+    .tenant-avatar { width: 38px; height: 38px; border-radius: 10px; background: #e9ecef; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: #6c757d; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 fw-semibold">Tenants</h1>
+    </div>
+    <form method="get" class="d-flex align-items-center gap-2">
+        <select name="property" class="form-select form-select-sm" style="min-width: 240px;" onchange="this.form.submit()">
+            <option value="">All properties</option>
+            {% for prop in properties %}
+                <option value="{{ prop.id }}" {% if selected_property_id == prop.id|stringformat:'s' %}selected{% endif %}>
+                    {{ prop.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2">
+            {{ tenants|length }} total
+        </span>
+    </form>
+</div>
+
+{% if tenants %}
+<div class="card shadow-sm card-rounded">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Tenant</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Unit</th>
+                        <th>Property</th>
+                        <th>Lease Dates</th>
+                        <th class="pe-4">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tenant in tenants %}
+                        {% with current=tenant.prefetched_tenancies.0 %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="tenant-avatar">
+                                        {% firstof tenant.first_name|first tenant.last_name|first "?" %}
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{ tenant.first_name }} {{ tenant.last_name }}</div>
+                                        {% if current %}
+                                            <div class="text-muted small">Rent: ${{ current.monthly_rent_at_start }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-muted">{{ tenant.email_address }}</td>
+                            <td class="text-muted">{{ tenant.phone_number }}</td>
+                            <td class="fw-semibold">
+                                {% if current %}
+                                    {{ current.unit.unit_number }}
+                                {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if current %}
+                                    <div class="fw-semibold">{{ current.unit.property.name }}</div>
+                                    <div class="text-muted small">{{ current.unit.property.address }}</div>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if current %}
+                                    <div class="fw-semibold">{{ current.start_date|date:"M j, Y" }} → {{ current.end_date|date:"M j, Y" }}</div>
+                                    <div class="text-muted small">{{ current.notes|default:"" }}</div>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="pe-4 text-muted">{{ tenant.notes|default:"—" }}</td>
+                        </tr>
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+    <div class="card shadow-sm card-rounded">
+        <div class="card-body text-center py-5">
+            <div class="display-6 mb-3">👥</div>
+            <h2 class="h5 fw-semibold mb-2">No tenants yet</h2>
+            <p class="text-muted mb-0">Add a tenancy to start seeing tenants here.</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+

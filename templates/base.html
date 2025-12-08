@@ -33,10 +33,10 @@
                             <a class="nav-link {% block nav_dashboard_active %}{% endblock %}" href="/">Dashboard</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% block nav_units_active %}{% endblock %}">Units</a>
+                            <a class="nav-link {% block nav_units_active %}{% endblock %}" href="{% url 'index' %}">Units</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% block nav_tenants_active %}{% endblock %}">Tenants</a>
+                            <a class="nav-link {% block nav_tenants_active %}{% endblock %}" href="{% url 'tenants' %}">Tenants</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% block nav_payments_active %}{% endblock %}">Payments</a>

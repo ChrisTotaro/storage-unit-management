@@ -1,0 +1,77 @@
+{% extends "storage/index.html" %}
+
+{% block title %}Add Unit · Storage Unit Manager{% endblock %}
+
+{% block modal_content %}
+<!-- Add Unit Modal -->
+<div class="modal fade show" id="addUnitModal" tabindex="-1" aria-labelledby="addUnitModalLabel" aria-hidden="false" style="display: block;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form method="post" action="{% url 'unit_add' %}{% if selected_property_id %}?property={{ selected_property_id }}{% endif %}">
+                {% csrf_token %}
+                <input type="hidden" name="filter_property" value="{{ selected_property_id }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUnitModalLabel">Add Unit</h5>
+                    <a href="{% url 'index' %}{% if selected_property_id %}?property={{ selected_property_id }}{% endif %}" class="btn-close" aria-label="Close"></a>
+                </div>
+                <div class="modal-body">
+                    {% if add_unit_form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ add_unit_form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Property</label>
+                            {{ add_unit_form.property }}
+                            {% if add_unit_form.property.errors %}
+                                <div class="text-danger small">{{ add_unit_form.property.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Unit #</label>
+                            {{ add_unit_form.unit_number }}
+                            {% if add_unit_form.unit_number.errors %}
+                                <div class="text-danger small">{{ add_unit_form.unit_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Size</label>
+                            {{ add_unit_form.size }}
+                            {% if add_unit_form.size.errors %}
+                                <div class="text-danger small">{{ add_unit_form.size.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            {{ add_unit_form.status }}
+                            {% if add_unit_form.status.errors %}
+                                <div class="text-danger small">{{ add_unit_form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Monthly Rent</label>
+                            {{ add_unit_form.monthly_rent }}
+                            {% if add_unit_form.monthly_rent.errors %}
+                                <div class="text-danger small">{{ add_unit_form.monthly_rent.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Notes</label>
+                            {{ add_unit_form.notes }}
+                            {% if add_unit_form.notes.errors %}
+                                <div class="text-danger small">{{ add_unit_form.notes.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'index' %}{% if selected_property_id %}?property={{ selected_property_id }}{% endif %}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Unit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+{% endblock %}
