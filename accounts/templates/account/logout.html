@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block navbar %}{% endblock %}
+
+{% block title %}{% trans "Sign out" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3">{% trans "Sign out" %}</h1>
+                <p class="text-muted mb-4">{% trans "Are you sure you want to sign out?" %}</p>
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    {{ form.hidden_fields }}
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-secondary w-50" href="/">{% trans "Cancel" %}</a>
+                        <button class="btn btn-danger w-50" type="submit">{% trans "Sign out" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

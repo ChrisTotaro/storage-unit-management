@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block navbar %}{% endblock %}
+
+{% block title %}{% trans "Sign in" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3">{% trans "Welcome back" %}</h1>
+                <p class="text-muted mb-4">{% trans "Sign in to manage your storage units and tenants." %}</p>
+                <form method="post" action="{% url 'account_login' %}">
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    <div class="mb-3">
+                        {{ form.login.label_tag }}
+                        {{ form.login }}
+                        {{ form.login.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password.label_tag }}
+                        {{ form.password }}
+                        {{ form.password.errors }}
+                    </div>
+                    {% if form.remember %}
+                    <div class="form-check mb-3">
+                        {{ form.remember }}
+                        {{ form.remember.label_tag }}
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <a href="{% url 'account_reset_password' %}">{% trans "Forgot password?" %}</a>
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">{% trans "Sign in" %}</button>
+                </form>
+                <p class="text-center text-muted mt-4 mb-0">
+                    {% trans "Need an account?" %} <a href="{% url 'account_signup' %}">{% trans "Sign up" %}</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

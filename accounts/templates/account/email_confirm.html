@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block navbar %}{% endblock %}
+
+{% block title %}{% trans "Confirm email" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3">{% trans "Confirm your email" %}</h1>
+                {% if confirmation %}
+                    <p class="text-muted mb-4">
+                        {% blocktrans with email=confirmation.email_address.email %}Please confirm that <strong>{{ email }}</strong> is correct so you can finish setting up your account.{% endblocktrans %}
+                    </p>
+                    <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+                        {% csrf_token %}
+                        <button class="btn btn-primary w-100" type="submit">{% trans "Confirm email" %}</button>
+                    </form>
+                {% else %}
+                    <p class="text-muted mb-4">
+                        {% trans "This confirmation link is invalid or has expired." %}
+                    </p>
+                    <a class="btn btn-outline-primary w-100" href="{% url 'account_email' %}">{% trans "Request a new link" %}</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
