@@ -1,1 +1,33 @@
-/.env
+# Environment
+.env
+.env.*
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Django / database / media
+db.sqlite3
+media/
+
+# Migrations cache (keep migration files, ignore pyc)
+**/migrations/__pycache__/
+
+# Static collection output
+staticfiles/
+
+# IDE / tooling
+.idea/
+.vscode/
+*.sqlite3
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
