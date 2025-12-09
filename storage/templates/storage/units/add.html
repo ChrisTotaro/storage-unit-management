@@ -1,4 +1,4 @@
-{% extends "storage/index.html" %}
+{% extends "storage/units/index.html" %}
 
 {% block title %}Add Unit · Storage Unit Manager{% endblock %}
 
@@ -7,12 +7,12 @@
 <div class="modal fade show" id="addUnitModal" tabindex="-1" aria-labelledby="addUnitModalLabel" aria-hidden="false" style="display: block;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <form method="post" action="{% url 'unit_add' %}{% if selected_property_id %}?property={{ selected_property_id }}{% endif %}">
+            <form method="post" action="{% url 'unit_add' %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}">
                 {% csrf_token %}
                 <input type="hidden" name="filter_property" value="{{ selected_property_id }}">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addUnitModalLabel">Add Unit</h5>
-                    <a href="{% url 'index' %}{% if selected_property_id %}?property={{ selected_property_id }}{% endif %}" class="btn-close" aria-label="Close"></a>
+                    <a href="{% url 'index' %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}" class="btn-close" aria-label="Close"></a>
                 </div>
                 <div class="modal-body">
                     {% if add_unit_form.non_field_errors %}
@@ -66,7 +66,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <a href="{% url 'index' %}{% if selected_property_id %}?property={{ selected_property_id }}{% endif %}" class="btn btn-outline-secondary">Cancel</a>
+                    <a href="{% url 'index' %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}" class="btn btn-outline-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">Save Unit</button>
                 </div>
             </form>

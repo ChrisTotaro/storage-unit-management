@@ -1,0 +1,167 @@
+{% extends "storage/properties/index.html" %}
+
+{% block title %}{{ property.name }} · Storage Unit Manager{% endblock %}
+
+{% block css %}
+{{ block.super }}
+<style>
+    .badge-occupied { background: #d1e7dd; color: #0f5132; }
+    .badge-vacant { background: #f8d7da; color: #842029; }
+</style>
+{% endblock %}
+
+{% block modal_content %}
+<!-- Property Detail Modal -->
+<div class="modal fade show" id="propertyDetailModal" tabindex="-1" aria-labelledby="propertyDetailModalLabel" aria-hidden="false" style="display: block;">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title mb-0" id="propertyDetailModalLabel">{{ property.name }}</h5>
+                    <p class="text-muted mb-0 small">{{ property.address }}</p>
+                </div>
+                <a href="{% url 'property_list' %}" class="btn-close" aria-label="Close"></a>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-semibold">Units ({{ units|length }})</h6>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'property_edit' property.id %}" class="btn btn-sm btn-outline-primary">Edit Property</a>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="toggleAddUnitForm()">+ Add Unit</button>
+                    </div>
+                </div>
+                
+                <!-- Add Unit Form (initially hidden) -->
+                <div id="addUnitForm" style="display: none;" class="card mb-3 border-primary">
+                    <div class="card-body">
+                        <h6 class="fw-semibold mb-3">Add New Unit</h6>
+                        <form method="post" action="{% url 'property_detail' property.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="property" value="{{ property.id }}">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Unit #</label>
+                                    {{ unit_form.unit_number }}
+                                    {% if unit_form.unit_number.errors %}
+                                        <div class="text-danger small">{{ unit_form.unit_number.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Size</label>
+                                    {{ unit_form.size }}
+                                    {% if unit_form.size.errors %}
+                                        <div class="text-danger small">{{ unit_form.size.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    {{ unit_form.status }}
+                                    {% if unit_form.status.errors %}
+                                        <div class="text-danger small">{{ unit_form.status.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Monthly Rent</label>
+                                    {{ unit_form.monthly_rent }}
+                                    {% if unit_form.monthly_rent.errors %}
+                                        <div class="text-danger small">{{ unit_form.monthly_rent.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Notes</label>
+                                    {{ unit_form.notes }}
+                                    {% if unit_form.notes.errors %}
+                                        <div class="text-danger small">{{ unit_form.notes.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary">Save Unit</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="toggleAddUnitForm()">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                {% if unit_form.non_field_errors %}
+                    <div class="alert alert-danger mb-3">
+                        {{ unit_form.non_field_errors }}
+                    </div>
+                {% endif %}
+                
+                {% if units %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Unit #</th>
+                                <th>Size</th>
+                                <th>Status</th>
+                                <th>Monthly Rent</th>
+                                <th>Tenant</th>
+                                <th class="pe-4">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for unit in units %}
+                                {% with current=unit.prefetched_tenancies.0 %}
+                                <tr>
+                                    <td class="ps-4 fw-semibold">{{ unit.unit_number }}</td>
+                                    <td class="text-muted">{{ unit.size|default:"" }}</td>
+                                    <td>
+                                        {% if unit.status|lower == "occupied" %}
+                                            <span class="badge badge-occupied px-3 py-2">Occupied</span>
+                                        {% else %}
+                                            <span class="badge badge-vacant px-3 py-2 text-uppercase">{{ unit.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-semibold">${{ unit.monthly_rent }}</td>
+                                    <td>
+                                        {% if current and current.tenant %}
+                                            <div class="fw-semibold">{{ current.tenant.first_name }} {{ current.tenant.last_name }}</div>
+                                            <div class="text-muted small">{{ current.tenant.email_address }}</div>
+                                        {% else %}
+                                            <span class="text-muted">Vacant</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="pe-4 text-muted">{{ unit.notes|default:"" }}</td>
+                                </tr>
+                                {% endwith %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="display-6 mb-3">📦</div>
+                    <h6 class="fw-semibold mb-2">No units yet</h6>
+                    <p class="text-muted mb-3">Add units to this property to get started.</p>
+                    <button type="button" class="btn btn-primary" onclick="toggleAddUnitForm()">Add Unit</button>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'property_list' %}" class="btn btn-outline-secondary">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleAddUnitForm() {
+    const form = document.getElementById('addUnitForm');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        // Scroll to form
+        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        form.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

@@ -1,9 +1,36 @@
 from django.urls import path, include
-from .views import IndexView, TenantListView, UnitCreateView
+from .views import (
+    DashboardView,
+    IndexView,
+    UnitCreateView,
+    UnitDetailView,
+    UnitEditView,
+    UnitAssignTenantView,
+    UnitRemoveTenantView,
+    TenantListView,
+    TenantCreateView,
+    TenantDetailView,
+    TenantEditView,
+    PropertyListView,
+    PropertyDetailView,
+    PropertyCreateView,
+    PropertyEditView,
+)
 
 urlpatterns = [
-
-    path('', IndexView.as_view(), name="index"),
+    path('', DashboardView.as_view(), name="dashboard"),
+    path('units/', IndexView.as_view(), name="index"),
     path('units/new/', UnitCreateView.as_view(), name="unit_add"),
+    path('units/<int:unit_id>/', UnitDetailView.as_view(), name="unit_detail"),
+    path('units/<int:unit_id>/edit/', UnitEditView.as_view(), name="unit_edit"),
+    path('units/<int:unit_id>/assign-tenant/', UnitAssignTenantView.as_view(), name="unit_assign_tenant"),
+    path('units/<int:unit_id>/remove-tenant/', UnitRemoveTenantView.as_view(), name="unit_remove_tenant"),
     path('tenants/', TenantListView.as_view(), name="tenants"),
+    path('tenants/new/', TenantCreateView.as_view(), name="tenant_add"),
+    path('tenants/<int:tenant_id>/', TenantDetailView.as_view(), name="tenant_detail"),
+    path('tenants/<int:tenant_id>/edit/', TenantEditView.as_view(), name="tenant_edit"),
+    path('properties/', PropertyListView.as_view(), name="property_list"),
+    path('properties/new/', PropertyCreateView.as_view(), name="property_add"),
+    path('properties/<int:property_id>/', PropertyDetailView.as_view(), name="property_detail"),
+    path('properties/<int:property_id>/edit/', PropertyEditView.as_view(), name="property_edit"),
 ]

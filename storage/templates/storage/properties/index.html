@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Properties · Storage Unit Manager{% endblock %}
+{% block nav_properties_active %}active{% endblock %}
+
+{% block css %}
+<style>
+    .card-rounded { border-radius: 1rem; }
+    .table thead th { font-weight: 600; color: #6c757d; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.02em; }
+    .table td { vertical-align: middle; }
+    .table tbody tr { cursor: pointer; }
+    .table tbody tr:hover { background-color: #f8f9fa; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-2">
+        <h1 class="h3 mb-0 fw-semibold">Properties</h1>
+        <a class="btn btn-primary" href="{% url 'property_add' %}">
+            + Add Property
+        </a>
+    </div>
+</div>
+
+{% if properties %}
+<div class="card shadow-sm card-rounded">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Property Name</th>
+                        <th>Address</th>
+                        <th class="pe-4">Units</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for property in properties %}
+                    <tr onclick="window.location.href='{% url 'property_detail' property.id %}'">
+                        <td class="ps-4">
+                            <div class="fw-semibold">
+                                {{ property.name }}
+                            </div>
+                        </td>
+                        <td class="text-muted">{{ property.address }}</td>
+                        <td class="pe-4">
+                            <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2">
+                                {{ property.unit_count }} unit{{ property.unit_count|pluralize }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+    <div class="card shadow-sm card-rounded">
+        <div class="card-body text-center py-5">
+            <div class="display-6 mb-3">🏢</div>
+            <h2 class="h5 fw-semibold mb-2">No properties yet</h2>
+            <p class="text-muted mb-0">Add a property to get started.</p>
+            <a href="{% url 'property_add' %}" class="btn btn-primary mt-3">Add Your First Property</a>
+        </div>
+    </div>
+{% endif %}
+
+{% block modal_content %}
+{% endblock %}
+{% endblock %}
+

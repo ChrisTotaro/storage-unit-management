@@ -1,0 +1,286 @@
+{% extends "storage/units/detail.html" %}
+
+{% block title %}Edit {{ unit.property.name }} - Unit {{ unit.unit_number }} · Storage Unit Manager{% endblock %}
+
+{% block modal_content %}
+<!-- Unit Detail Modal with Edit Form -->
+<div class="modal fade show" id="unitDetailModal" tabindex="-1" aria-labelledby="unitDetailModalLabel" aria-hidden="false" style="display: block;">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title mb-0" id="unitDetailModalLabel">{{ unit.property.name }} - Unit {{ unit.unit_number }}</h5>
+                    <p class="text-muted mb-0 small">{{ unit.property.address }}</p>
+                </div>
+                <a href="{% url 'index' %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}" class="btn-close" aria-label="Close"></a>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-semibold mb-0">Unit Information</h6>
+                                </div>
+                                <form method="post" action="{% url 'unit_edit' unit.id %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}">
+                                    {% csrf_token %}
+                                    {% if unit_form.non_field_errors %}
+                                        <div class="alert alert-danger small mb-2">
+                                            {{ unit_form.non_field_errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted mb-0">Property</label>
+                                        {{ unit_form.property }}
+                                        {% if unit_form.property.errors %}
+                                            <div class="text-danger small">{{ unit_form.property.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <label class="form-label small text-muted mb-0">Unit Number</label>
+                                            {{ unit_form.unit_number }}
+                                            {% if unit_form.unit_number.errors %}
+                                                <div class="text-danger small">{{ unit_form.unit_number.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small text-muted mb-0">Size</label>
+                                            {{ unit_form.size }}
+                                            {% if unit_form.size.errors %}
+                                                <div class="text-danger small">{{ unit_form.size.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <label class="form-label small text-muted mb-0">Status</label>
+                                            {{ unit_form.status }}
+                                            {% if unit_form.status.errors %}
+                                                <div class="text-danger small">{{ unit_form.status.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small text-muted mb-0">Monthly Rent</label>
+                                            {{ unit_form.monthly_rent }}
+                                            {% if unit_form.monthly_rent.errors %}
+                                                <div class="text-danger small">{{ unit_form.monthly_rent.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted mb-0">Notes</label>
+                                        {{ unit_form.notes }}
+                                        {% if unit_form.notes.errors %}
+                                            <div class="text-danger small">{{ unit_form.notes.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                                        <a href="{% url 'unit_detail' unit.id %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-semibold mb-0">Current Tenant</h6>
+                                    {% if current_tenancy %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="showRemoveTenantModal()">Remove Tenant</button>
+                                    {% else %}
+                                    <button type="button" class="btn btn-sm btn-primary" onclick="toggleAssignTenantForm()">+ Assign Tenant</button>
+                                    {% endif %}
+                                </div>
+                                {% if current_tenancy and current_tenancy.tenant %}
+                                <div class="mb-2">
+                                    <span class="text-muted small">Tenant:</span>
+                                    <div class="fw-semibold">
+                                        <a href="{% url 'tenant_detail' current_tenancy.tenant.id %}" class="text-decoration-none">
+                                            {{ current_tenancy.tenant.first_name }} {{ current_tenancy.tenant.last_name }}
+                                        </a>
+                                    </div>
+                                    <div class="text-muted small">{{ current_tenancy.tenant.email_address }}</div>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small">Lease Period:</span>
+                                    <div class="fw-semibold">{{ current_tenancy.start_date|date:"M j, Y" }} → {{ current_tenancy.end_date|date:"M j, Y" }}</div>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small">Monthly Rent:</span>
+                                    <div class="fw-semibold">${{ current_tenancy.monthly_rent_at_start }}</div>
+                                </div>
+                                {% if current_tenancy.notes %}
+                                <div class="mt-3">
+                                    <span class="text-muted small">Tenancy Notes:</span>
+                                    <div class="text-muted">{{ current_tenancy.notes }}</div>
+                                </div>
+                                {% endif %}
+                                {% else %}
+                                <div class="text-center py-3">
+                                    <p class="text-muted mb-0">No tenant assigned</p>
+                                </div>
+                                
+                                <!-- Assign Tenant Form (initially hidden) -->
+                                <div id="assignTenantForm" style="display: none;" class="mt-3 pt-3 border-top">
+                                    <h6 class="fw-semibold mb-3 small">Assign Tenant</h6>
+                                    <form method="post" action="{% url 'unit_assign_tenant' unit.id %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="unit_id" value="{{ unit.id }}">
+                                        {% if tenancy_form.non_field_errors %}
+                                            <div class="alert alert-danger small">
+                                                {{ tenancy_form.non_field_errors }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-0">Tenant</label>
+                                            {{ tenancy_form.tenant }}
+                                            {% if tenancy_form.tenant.errors %}
+                                                <div class="text-danger small">{{ tenancy_form.tenant.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0">Start Date</label>
+                                                {{ tenancy_form.start_date }}
+                                                {% if tenancy_form.start_date.errors %}
+                                                    <div class="text-danger small">{{ tenancy_form.start_date.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0">End Date</label>
+                                                {{ tenancy_form.end_date }}
+                                                {% if tenancy_form.end_date.errors %}
+                                                    <div class="text-danger small">{{ tenancy_form.end_date.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-0">Monthly Rent</label>
+                                            {{ tenancy_form.monthly_rent_at_start }}
+                                            {% if tenancy_form.monthly_rent_at_start.errors %}
+                                                <div class="text-danger small">{{ tenancy_form.monthly_rent_at_start.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-0">Notes</label>
+                                            {{ tenancy_form.notes }}
+                                            {% if tenancy_form.notes.errors %}
+                                                <div class="text-danger small">{{ tenancy_form.notes.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary btn-sm">Assign Tenant</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleAssignTenantForm()">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'index' %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}" class="btn btn-outline-secondary">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+
+<!-- Remove Tenant Confirmation Modal -->
+{% if current_tenancy %}
+<div class="modal fade" id="removeTenantModal" tabindex="-1" aria-labelledby="removeTenantModalLabel" aria-hidden="true" style="display: none; z-index: 1060; position: fixed; top: 0; left: 0; width: 100%; height: 100%;">
+    <div class="modal-dialog modal-dialog-centered" style="z-index: 1061;">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="removeTenantModalLabel">Remove Tenant</h5>
+                <button type="button" class="btn-close" onclick="hideRemoveTenantModal()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <div class="text-center mb-4">
+                    <div class="mb-3" style="font-size: 3rem;">⚠️</div>
+                    <h6 class="fw-semibold mb-2">Are you sure you want to remove this tenant?</h6>
+                    <p class="text-muted mb-0">
+                        <strong>{{ current_tenancy.tenant.first_name }} {{ current_tenancy.tenant.last_name }}</strong> will be removed from <strong>{{ unit.property.name }} - Unit {{ unit.unit_number }}</strong>.
+                    </p>
+                    <p class="text-muted small mt-2 mb-0">The unit will be marked as vacant and the tenancy record will be deleted.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" onclick="hideRemoveTenantModal()">Cancel</button>
+                <form method="post" action="{% url 'unit_remove_tenant' unit.id %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Remove Tenant</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleAssignTenantForm() {
+    const form = document.getElementById('assignTenantForm');
+    if (form) {
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+        } else {
+            form.style.display = 'none';
+        }
+    }
+}
+
+function showRemoveTenantModal() {
+    const modalElement = document.getElementById('removeTenantModal');
+    
+    if (!modalElement) {
+        alert('Modal not found. Please refresh the page.');
+        return;
+    }
+    
+    // Remove any existing backdrop first
+    const existingBackdrop = document.getElementById('removeTenantBackdrop');
+    if (existingBackdrop) {
+        existingBackdrop.remove();
+    }
+    
+    // Create a new backdrop for the nested modal
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop fade show';
+    backdrop.id = 'removeTenantBackdrop';
+    backdrop.style.cssText = 'z-index: 1055; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);';
+    document.body.appendChild(backdrop);
+    
+    // Show the modal
+    modalElement.style.cssText = 'display: block !important; z-index: 1060; position: fixed; top: 0; left: 0; width: 100%; height: 100%;';
+    modalElement.classList.add('show');
+    modalElement.setAttribute('aria-hidden', 'false');
+    modalElement.setAttribute('aria-modal', 'true');
+}
+
+function hideRemoveTenantModal() {
+    const modalElement = document.getElementById('removeTenantModal');
+    const backdrop = document.getElementById('removeTenantBackdrop');
+    
+    if (modalElement) {
+        modalElement.style.display = 'none';
+        modalElement.classList.remove('show');
+        modalElement.setAttribute('aria-hidden', 'true');
+    }
+    
+    if (backdrop) {
+        backdrop.classList.remove('show');
+        setTimeout(() => {
+            backdrop.remove();
+        }, 150);
+    }
+}
+</script>
+{% endblock %}
+

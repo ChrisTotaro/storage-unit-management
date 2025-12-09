@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · Storage Unit Manager{% endblock %}
+{% block nav_dashboard_active %}active{% endblock %}
+
+{% block css %}
+<style>
+    .metric-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    .metric-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin: 0.5rem 0;
+    }
+    .metric-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .progress-ring {
+        width: 80px;
+        height: 80px;
+    }
+    .section-card {
+        border: none;
+        border-radius: 1rem;
+        height: 100%;
+    }
+    .section-header {
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    .list-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s;
+    }
+    .list-item:last-child {
+        border-bottom: none;
+    }
+    .list-item:hover {
+        background-color: #f8f9fa;
+        margin-left: -1rem;
+        margin-right: -1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        border-radius: 0.5rem;
+    }
+    .badge-custom {
+        padding: 0.35em 0.65em;
+        font-weight: 500;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+    .empty-state-icon {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="h3 mb-0 fw-semibold">Dashboard</h1>
+    <p class="text-muted mb-0">Overview of your storage unit business</p>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="row g-4 mb-4">
+    <!-- Total Properties -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card metric-card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="metric-icon bg-primary bg-opacity-10 text-primary">
+                        🏢
+                    </div>
+                </div>
+                <div class="metric-value text-primary">{{ total_properties }}</div>
+                <div class="metric-label">Total Properties</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Units -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card metric-card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="metric-icon bg-info bg-opacity-10 text-info">
+                        📦
+                    </div>
+                </div>
+                <div class="metric-value text-info">{{ total_units }}</div>
+                <div class="metric-label">Total Units</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Occupied Units -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card metric-card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="metric-icon bg-success bg-opacity-10 text-success">
+                        ✅
+                    </div>
+                </div>
+                <div class="metric-value text-success">{{ occupied_units }}</div>
+                <div class="metric-label">Occupied Units</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vacant Units -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card metric-card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="metric-icon bg-warning bg-opacity-10 text-warning">
+                        ⚠️
+                    </div>
+                </div>
+                <div class="metric-value text-warning">{{ vacant_units }}</div>
+                <div class="metric-label">Vacant Units</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue and Occupancy Row -->
+<div class="row g-4 mb-4">
+    <!-- Monthly Revenue -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card metric-card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="metric-icon bg-success bg-opacity-10 text-success">
+                        💰
+                    </div>
+                </div>
+                <div class="metric-value text-success">${{ monthly_revenue|floatformat:2 }}</div>
+                <div class="metric-label">Monthly Revenue</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Occupancy Rate -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card metric-card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="metric-icon bg-primary bg-opacity-10 text-primary">
+                        📊
+                    </div>
+                </div>
+                <div class="metric-value text-primary">{{ occupancy_rate }}%</div>
+                <div class="metric-label">Occupancy Rate</div>
+                <div class="progress mt-3" style="height: 8px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ occupancy_rate }}%" aria-valuenow="{{ occupancy_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Tenants -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card metric-card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="metric-icon bg-info bg-opacity-10 text-info">
+                        👥
+                    </div>
+                </div>
+                <div class="metric-value text-info">{{ active_tenant_count }}</div>
+                <div class="metric-label">Active Tenants</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Row -->
+<div class="row g-4">
+    <!-- Recent Activity -->
+    <div class="col-lg-6">
+        <div class="card section-card shadow-sm">
+            <div class="card-body">
+                <div class="section-header">
+                    <h5 class="mb-0 fw-semibold">Recent Activity</h5>
+                    <small class="text-muted">Latest units and tenant assignments</small>
+                </div>
+                
+                {% if recent_units or recent_tenancies %}
+                <div class="list-group list-group-flush">
+                    {% for unit in recent_units|slice:":5" %}
+                    <div class="list-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold">
+                                    <a href="{% url 'unit_detail' unit.id %}" class="text-decoration-none text-dark">
+                                        {{ unit.property.name }} - Unit {{ unit.unit_number }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">
+                                    Added {{ unit.created_at|date:"M d, Y" }}
+                                    <span class="badge badge-custom bg-{% if unit.status == 'occupied' %}success{% else %}warning{% endif %} bg-opacity-10 text-{% if unit.status == 'occupied' %}success{% else %}warning{% endif %} ms-2">
+                                        {{ unit.get_status_display }}
+                                    </span>
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-semibold">${{ unit.monthly_rent|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% for tenancy in recent_tenancies|slice:":5" %}
+                    <div class="list-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold">
+                                    <a href="{% url 'tenant_detail' tenancy.tenant.id %}" class="text-decoration-none text-dark">
+                                        {{ tenancy.tenant.first_name }} {{ tenancy.tenant.last_name }}
+                                    </a>
+                                    <span class="text-muted">→</span>
+                                    <a href="{% url 'unit_detail' tenancy.unit.id %}" class="text-decoration-none text-dark">
+                                        {{ tenancy.unit.property.name }} - Unit {{ tenancy.unit.unit_number }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">
+                                    Assigned {{ tenancy.created_at|date:"M d, Y" }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <p class="mb-0">No recent activity</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Expirations -->
+    <div class="col-lg-6">
+        <div class="card section-card shadow-sm">
+            <div class="card-body">
+                <div class="section-header">
+                    <h5 class="mb-0 fw-semibold">Upcoming Lease Expirations</h5>
+                    <small class="text-muted">Next 30 days</small>
+                </div>
+                
+                {% if upcoming_expirations %}
+                <div class="list-group list-group-flush">
+                    {% for item in upcoming_expirations %}
+                    <div class="list-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold">
+                                    <a href="{% url 'tenant_detail' item.tenancy.tenant.id %}" class="text-decoration-none text-dark">
+                                        {{ item.tenancy.tenant.first_name }} {{ item.tenancy.tenant.last_name }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">
+                                    {{ item.tenancy.unit.property.name }} - Unit {{ item.tenancy.unit.unit_number }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-semibold {% if item.is_expired or item.is_today %}text-danger{% elif item.is_urgent %}text-warning{% else %}text-dark{% endif %}">
+                                    {{ item.tenancy.end_date|date:"M d" }}
+                                </div>
+                                <small class="text-muted">
+                                    {% if item.is_expired %}
+                                        Expired {{ item.days_ago }} day{{ item.days_ago|pluralize }} ago
+                                    {% elif item.is_today %}
+                                        Expires today
+                                    {% else %}
+                                        {{ item.days_until }} day{{ item.days_until|pluralize }} left
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">✅</div>
+                    <p class="mb-0">No upcoming expirations</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Properties Overview and Units Needing Attention -->
+<div class="row g-4 mt-2">
+    <!-- Top Properties -->
+    <div class="col-lg-6">
+        <div class="card section-card shadow-sm">
+            <div class="card-body">
+                <div class="section-header">
+                    <h5 class="mb-0 fw-semibold">Top Properties</h5>
+                    <small class="text-muted">By unit count</small>
+                </div>
+                
+                {% if properties_with_counts %}
+                <div class="list-group list-group-flush">
+                    {% for property in properties_with_counts %}
+                    <div class="list-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold">
+                                    <a href="{% url 'property_detail' property.id %}" class="text-decoration-none text-dark">
+                                        {{ property.name }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">{{ property.address|truncatewords:8 }}</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-semibold">{{ property.unit_count }} units</div>
+                                <small class="text-muted">
+                                    <span class="text-success">{{ property.occupied_count }} occupied</span> · 
+                                    <span class="text-warning">{{ property.vacant_count }} vacant</span>
+                                </small>
+                                {% if property.total_revenue %}
+                                <div class="mt-1">
+                                    <small class="text-success fw-semibold">${{ property.total_revenue|floatformat:2 }}/mo</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">🏢</div>
+                    <p class="mb-0">No properties yet</p>
+                    <a href="{% url 'property_add' %}" class="btn btn-primary btn-sm mt-2">Add Your First Property</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Units Needing Attention -->
+    <div class="col-lg-6">
+        <div class="card section-card shadow-sm">
+            <div class="card-body">
+                <div class="section-header">
+                    <h5 class="mb-0 fw-semibold">Units Needing Attention</h5>
+                    <small class="text-muted">Vacant for 30+ days</small>
+                </div>
+                
+                {% if units_needing_attention %}
+                <div class="list-group list-group-flush">
+                    {% for item in units_needing_attention %}
+                    <div class="list-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold">
+                                    <a href="{% url 'unit_detail' item.unit.id %}" class="text-decoration-none text-dark">
+                                        {{ item.unit.property.name }} - Unit {{ item.unit.unit_number }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">
+                                    Vacant for {{ item.days_vacant }} days
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-semibold">${{ item.unit.monthly_rent|floatformat:2 }}</div>
+                                <span class="badge badge-custom bg-warning bg-opacity-10 text-warning">Action Needed</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">✨</div>
+                    <p class="mb-0">All units are in good shape!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card section-card shadow-sm">
+            <div class="card-body">
+                <div class="section-header">
+                    <h5 class="mb-0 fw-semibold">Quick Actions</h5>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'property_add' %}" class="btn btn-primary">
+                        + Add Property
+                    </a>
+                    <a href="{% url 'unit_add' %}" class="btn btn-outline-primary">
+                        + Add Unit
+                    </a>
+                    <a href="{% url 'property_list' %}" class="btn btn-outline-secondary">
+                        View All Properties
+                    </a>
+                    <a href="{% url 'index' %}" class="btn btn-outline-secondary">
+                        View All Units
+                    </a>
+                    <a href="{% url 'tenants' %}" class="btn btn-outline-secondary">
+                        View All Tenants
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

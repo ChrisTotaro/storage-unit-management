@@ -39,6 +39,7 @@ class Unit(models.Model):
 
 
 class Tenant(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     email_address = models.EmailField(max_length=255)
@@ -49,6 +50,9 @@ class Tenant(models.Model):
 
     class Meta:
         db_table = "tenants"
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
 
 class Tenancies(models.Model):
