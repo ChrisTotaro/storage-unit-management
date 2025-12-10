@@ -5,10 +5,11 @@ from django.db.models import Count, Sum, Q, Prefetch
 from django.utils import timezone
 from datetime import timedelta
 
+from accounts.mixins import SubscriptionRequiredMixin
 from ..models import Property, Unit, Tenant, Tenancies
 
 
-class DashboardView(LoginRequiredMixin, View):
+class DashboardView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 

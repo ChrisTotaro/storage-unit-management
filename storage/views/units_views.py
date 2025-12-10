@@ -5,6 +5,7 @@ from django.db.models import Prefetch
 from django.urls import reverse
 from django.contrib import messages
 
+from accounts.mixins import SubscriptionRequiredMixin
 from ..models import Property, Unit, Tenancies
 from ..forms import UnitForm, TenancyForm, TenantForm
 
@@ -53,7 +54,7 @@ def _normalize_status_id(value):
         return None
 
 
-class IndexView(LoginRequiredMixin, View):
+class IndexView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 
@@ -78,7 +79,7 @@ class IndexView(LoginRequiredMixin, View):
         )
 
 
-class UnitCreateView(LoginRequiredMixin, View):
+class UnitCreateView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 
@@ -144,7 +145,7 @@ class UnitCreateView(LoginRequiredMixin, View):
         )
 
 
-class UnitDetailView(LoginRequiredMixin, View):
+class UnitDetailView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 
@@ -192,7 +193,7 @@ class UnitDetailView(LoginRequiredMixin, View):
         )
 
 
-class UnitEditView(LoginRequiredMixin, View):
+class UnitEditView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 
@@ -283,7 +284,7 @@ class UnitEditView(LoginRequiredMixin, View):
         )
 
 
-class UnitAssignTenantView(LoginRequiredMixin, View):
+class UnitAssignTenantView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 
@@ -339,7 +340,7 @@ class UnitAssignTenantView(LoginRequiredMixin, View):
         )
 
 
-class UnitRemoveTenantView(LoginRequiredMixin, View):
+class UnitRemoveTenantView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 
@@ -386,7 +387,7 @@ class UnitRemoveTenantView(LoginRequiredMixin, View):
         return redirect(redirect_url)
 
 
-class UnitCreateAndAssignTenantView(LoginRequiredMixin, View):
+class UnitCreateAndAssignTenantView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 

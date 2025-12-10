@@ -4,12 +4,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Prefetch, Count
 from django.contrib import messages
 
+from accounts.mixins import SubscriptionRequiredMixin
 from ..models import Property, Unit, Tenancies
 from ..forms import PropertyForm, UnitForm
 from .units_views import _get_units_context
 
 
-class PropertyListView(LoginRequiredMixin, View):
+class PropertyListView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 
@@ -28,7 +29,7 @@ class PropertyListView(LoginRequiredMixin, View):
         )
 
 
-class PropertyDetailView(LoginRequiredMixin, View):
+class PropertyDetailView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 
@@ -108,7 +109,7 @@ class PropertyDetailView(LoginRequiredMixin, View):
         )
 
 
-class PropertyCreateView(LoginRequiredMixin, View):
+class PropertyCreateView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 
@@ -152,7 +153,7 @@ class PropertyCreateView(LoginRequiredMixin, View):
         )
 
 
-class PropertyEditView(LoginRequiredMixin, View):
+class PropertyEditView(SubscriptionRequiredMixin, View):
     login_url = "account_login"
     redirect_field_name = "next"
 

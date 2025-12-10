@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Profile & Settings · Storage Unit Manager{% endblock %}
+{% block nav_profile_active %}active{% endblock %}
+
+{% block css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 1rem;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 700;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+    .info-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    .info-row {
+        padding: 1rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    .info-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+    }
+    .info-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #212529;
+    }
+    .subscription-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="d-flex align-items-center gap-4">
+        <div class="profile-avatar">
+            {% firstof user.first_name|first user.email|first|upper "?" %}
+        </div>
+        <div>
+            <h1 class="h3 mb-1 fw-bold">
+                {% if user.first_name or user.last_name %}
+                    {{ user.first_name }} {{ user.last_name }}
+                {% else %}
+                    Account
+                {% endif %}
+            </h1>
+            <p class="mb-0 opacity-75">{{ user.email }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Account Information -->
+    <div class="col-lg-6">
+        <div class="card info-card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-4 d-flex align-items-center gap-2">
+                    <span>👤</span>
+                    Account Information
+                </h5>
+                
+                <div class="info-row">
+                    <div class="info-label">Email Address</div>
+                    <div class="info-value">{{ user.email }}</div>
+                </div>
+                
+                {% if user.first_name or user.last_name %}
+                <div class="info-row">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">
+                        {{ user.first_name }} {{ user.last_name }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="info-row">
+                    <div class="info-label">Member Since</div>
+                    <div class="info-value">
+                        {{ user.date_joined|date:"F d, Y" }}
+                    </div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Account Type</div>
+                    <div class="info-value">
+                        {% if user.is_staff or user.is_superuser %}
+                            <span class="badge bg-primary">Administrator</span>
+                        {% else %}
+                            <span class="badge bg-secondary">User</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Subscription Status -->
+    <div class="col-lg-6">
+        <div class="card info-card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-4 d-flex align-items-center gap-2">
+                    <span>💳</span>
+                    Subscription
+                </h5>
+                
+                {% if has_subscription %}
+                    <div class="info-row">
+                        <div class="info-label">Status</div>
+                        <div class="info-value">
+                            <span class="subscription-badge bg-{% if subscription.is_active %}success{% elif subscription.status == 'past_due' %}warning{% else %}danger{% endif %} text-white">
+                                {{ subscription.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if subscription.is_active %}
+                        {% if subscription.current_period_end %}
+                        <div class="info-row">
+                            <div class="info-label">Renews On</div>
+                            <div class="info-value">
+                                {{ subscription.current_period_end|date:"F d, Y" }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if subscription.days_until_renewal %}
+                        <div class="info-row">
+                            <div class="info-label">Days Until Renewal</div>
+                            <div class="info-value">
+                                {{ subscription.days_until_renewal }} days
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if subscription.is_in_trial %}
+                        <div class="info-row">
+                            <div class="info-label">Trial Ends</div>
+                            <div class="info-value">
+                                {{ subscription.trial_end|date:"F d, Y" }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% elif subscription.current_period_end %}
+                        <div class="info-row">
+                            <div class="info-label">Period End</div>
+                            <div class="info-value">
+                                {{ subscription.current_period_end|date:"F d, Y" }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if subscription.cancel_at_period_end %}
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <small>
+                            <strong>Note:</strong> Your subscription will be canceled at the end of the current billing period.
+                        </small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'subscription_status' %}" class="btn btn-outline-primary btn-sm">
+                            Manage Subscription →
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="display-6 mb-3">💳</div>
+                        <p class="text-muted mb-3">
+                            No active subscription
+                        </p>
+                        <a href="{% url 'subscription_checkout' %}" class="btn btn-primary">
+                            Subscribe Now
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card info-card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Quick Actions</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% if has_active_subscription %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                            Go to Dashboard
+                        </a>
+                    {% endif %}
+                    
+                    {% if has_subscription %}
+                        <a href="{% url 'subscription_status' %}" class="btn btn-outline-primary">
+                            View Subscription Details
+                        </a>
+                    {% else %}
+                        <a href="{% url 'subscription_checkout' %}" class="btn btn-outline-primary">
+                            Subscribe
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'account_email' %}" class="btn btn-outline-secondary">
+                        Manage Email
+                    </a>
+                    
+                    <a href="{% url 'account_change_password' %}" class="btn btn-outline-secondary">
+                        Change Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

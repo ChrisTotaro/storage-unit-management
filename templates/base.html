@@ -49,7 +49,8 @@
                                     {{ request.user.email }}
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item">Profile</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'profile' %}">Profile & Settings</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'subscription_status' %}">Subscription</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="{% url 'account_logout' %}">Log out</a></li>
                                 </ul>

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription · Storage Unit Manager{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="h3 mb-0 fw-semibold">Subscription</h1>
+    <p class="text-muted mb-0">Manage your subscription</p>
+</div>
+
+{% if has_subscription %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Current Subscription</h5>
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Status</span>
+                        <span class="badge bg-{% if subscription.is_active %}success{% else %}warning{% endif %}">
+                            {{ subscription.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    {% if subscription.current_period_end %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Current Period End</span>
+                        <span class="fw-semibold">{{ subscription.current_period_end|date:"F d, Y" }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if subscription.days_until_renewal %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Days Until Renewal</span>
+                        <span class="fw-semibold">{{ subscription.days_until_renewal }} days</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if subscription.cancel_at_period_end %}
+                    <div class="alert alert-warning mt-3">
+                        <strong>Note:</strong> Your subscription will be canceled at the end of the current billing period.
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if subscription.is_active and not subscription.cancel_at_period_end %}
+                <div class="mt-4">
+                    <button type="button" class="btn btn-outline-danger" 
+                            data-bs-toggle="modal" data-bs-target="#cancelSubscriptionModal">
+                        Cancel Subscription
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    {% if not subscription.is_active %}
+                    <a href="{% url 'subscription_checkout' %}" class="btn btn-primary">
+                        Activate Subscription
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+        <div class="display-1 mb-4">💳</div>
+        <h2 class="h4 mb-3 fw-semibold">No Active Subscription</h2>
+        <p class="text-muted mb-4">
+            Subscribe to unlock all features of Storage Unit Manager.
+        </p>
+        <a href="{% url 'subscription_checkout' %}" class="btn btn-primary btn-lg">
+            Subscribe Now
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Cancel Subscription Modal -->
+{% if has_subscription and subscription.is_active and not subscription.cancel_at_period_end %}
+<div class="modal fade" id="cancelSubscriptionModal" tabindex="-1" aria-labelledby="cancelSubscriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="cancelSubscriptionModalLabel">Cancel Subscription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <div class="text-center mb-4">
+                    <div class="display-4 mb-3">⚠️</div>
+                    <h6 class="fw-semibold mb-2">Are you sure you want to cancel?</h6>
+                </div>
+                
+                <div class="alert alert-warning mb-3">
+                    <small>
+                        <strong>What happens next:</strong><br>
+                        {% if subscription.current_period_end %}
+                            Your subscription will remain active until <strong>{{ subscription.current_period_end|date:"F d, Y" }}</strong>.
+                            You'll continue to have access to all features until then.
+                        {% else %}
+                            Your subscription will remain active until the end of your current billing period.
+                            You'll continue to have access to all features until then.
+                        {% endif %}
+                    </small>
+                </div>
+                
+                <p class="text-muted small mb-0">
+                    After your current billing period ends, your subscription will be canceled and you'll lose access to premium features.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Keep Subscription
+                </button>
+                <form method="post" action="{% url 'subscription_cancel' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        Yes, Cancel Subscription
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
