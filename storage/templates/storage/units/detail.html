@@ -74,7 +74,10 @@
                                     {% if current_tenancy %}
                                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="showRemoveTenantModal()">Remove Tenant</button>
                                     {% else %}
-                                    <button type="button" class="btn btn-sm btn-primary" onclick="toggleAssignTenantForm()">+ Assign Tenant</button>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleCreateTenantForm()">+ Create New Tenant</button>
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="toggleAssignTenantForm()">Assign Existing</button>
+                                    </div>
                                     {% endif %}
                                 </div>
                                 {% if current_tenancy and current_tenancy.tenant %}
@@ -107,10 +110,97 @@
                                 </div>
                                 {% endif %}
                                 
-                                <!-- Assign Tenant Form (initially hidden) -->
+                                <!-- Create New Tenant Form (initially hidden) -->
                                 {% if not current_tenancy %}
+                                <div id="createTenantForm" style="display: none;" class="mt-3 pt-3 border-top">
+                                    <h6 class="fw-semibold mb-3 small">Create New Tenant & Assign</h6>
+                                    <form method="post" action="{% url 'unit_create_and_assign_tenant' unit.id %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="unit_id" value="{{ unit.id }}">
+                                        {% if tenant_form.non_field_errors %}
+                                            <div class="alert alert-danger small">
+                                                {{ tenant_form.non_field_errors }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0">First Name</label>
+                                                {{ tenant_form.first_name }}
+                                                {% if tenant_form.first_name.errors %}
+                                                    <div class="text-danger small">{{ tenant_form.first_name.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0">Last Name</label>
+                                                {{ tenant_form.last_name }}
+                                                {% if tenant_form.last_name.errors %}
+                                                    <div class="text-danger small">{{ tenant_form.last_name.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0">Email Address</label>
+                                                {{ tenant_form.email_address }}
+                                                {% if tenant_form.email_address.errors %}
+                                                    <div class="text-danger small">{{ tenant_form.email_address.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0">Phone Number</label>
+                                                {{ tenant_form.phone_number }}
+                                                {% if tenant_form.phone_number.errors %}
+                                                    <div class="text-danger small">{{ tenant_form.phone_number.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-0">Tenant Notes</label>
+                                            {{ tenant_form.notes }}
+                                            {% if tenant_form.notes.errors %}
+                                                <div class="text-danger small">{{ tenant_form.notes.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0">Lease Start Date</label>
+                                                {{ tenancy_form.start_date }}
+                                                {% if tenancy_form.start_date.errors %}
+                                                    <div class="text-danger small">{{ tenancy_form.start_date.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label small text-muted mb-0">Lease End Date</label>
+                                                {{ tenancy_form.end_date }}
+                                                {% if tenancy_form.end_date.errors %}
+                                                    <div class="text-danger small">{{ tenancy_form.end_date.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-0">Monthly Rent</label>
+                                            {{ tenancy_form.monthly_rent_at_start }}
+                                            {% if tenancy_form.monthly_rent_at_start.errors %}
+                                                <div class="text-danger small">{{ tenancy_form.monthly_rent_at_start.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-0">Tenancy Notes</label>
+                                            {{ tenancy_form.notes }}
+                                            {% if tenancy_form.notes.errors %}
+                                                <div class="text-danger small">{{ tenancy_form.notes.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary btn-sm">Create & Assign Tenant</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleCreateTenantForm()">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                
+                                <!-- Assign Tenant Form (initially hidden) -->
                                 <div id="assignTenantForm" style="display: none;" class="mt-3 pt-3 border-top">
-                                    <h6 class="fw-semibold mb-3 small">Assign Tenant</h6>
+                                    <h6 class="fw-semibold mb-3 small">Assign Existing Tenant</h6>
                                     <form method="post" action="{% url 'unit_assign_tenant' unit.id %}{% if selected_property_id or selected_status %}?{% if selected_property_id %}property={{ selected_property_id }}{% endif %}{% if selected_property_id and selected_status %}&{% endif %}{% if selected_status %}status={{ selected_status }}{% endif %}{% endif %}">
                                         {% csrf_token %}
                                         <input type="hidden" name="unit_id" value="{{ unit.id }}">
@@ -212,9 +302,24 @@
 <script>
 function toggleAssignTenantForm() {
     const form = document.getElementById('assignTenantForm');
+    const createForm = document.getElementById('createTenantForm');
     if (form) {
         if (form.style.display === 'none') {
             form.style.display = 'block';
+            if (createForm) createForm.style.display = 'none';
+        } else {
+            form.style.display = 'none';
+        }
+    }
+}
+
+function toggleCreateTenantForm() {
+    const form = document.getElementById('createTenantForm');
+    const assignForm = document.getElementById('assignTenantForm');
+    if (form) {
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            if (assignForm) assignForm.style.display = 'none';
         } else {
             form.style.display = 'none';
         }

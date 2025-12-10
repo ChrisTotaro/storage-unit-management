@@ -1,7 +1,7 @@
 from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Prefetch, Count, Sum
+from django.db.models import Prefetch, Count, Sum, Q
 from django.contrib import messages
 
 from ..models import Property, Tenant, Tenancies
@@ -96,6 +96,13 @@ class TenantListView(LoginRequiredMixin, View):
         properties = Property.objects.filter(user=request.user).order_by("name")
         raw_property_id = request.GET.get("property")
         property_id = _normalize_property_id(raw_property_id)
+        
+        # Get search query
+        search_query = request.GET.get("search", "").strip()
+        
+        # Get active filter (only show tenants with units)
+        active_filter = request.GET.get("active", "").strip().lower()
+        show_active_only = active_filter == "true"
 
         tenancy_qs = (
             Tenancies.objects.filter(unit__property__user=request.user)
@@ -124,6 +131,18 @@ class TenantListView(LoginRequiredMixin, View):
 
         if property_id:
             tenants = tenants.filter(tenancies__unit__property_id=property_id)
+        
+        # Apply active filter (only tenants with units)
+        if show_active_only:
+            tenants = tenants.filter(unit_count__gt=0)
+        
+        # Apply search filter
+        if search_query:
+            tenants = tenants.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email_address__icontains=search_query)
+            )
 
         return render(
             request,
@@ -132,6 +151,8 @@ class TenantListView(LoginRequiredMixin, View):
                 "tenants": tenants,
                 "properties": properties,
                 "selected_property_id": property_id,
+                "search_query": search_query,
+                "show_active_only": show_active_only,
             },
         )
 

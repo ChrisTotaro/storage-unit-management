@@ -25,6 +25,38 @@
             + Add Tenant
         </a>
     </div>
+    <div class="d-flex align-items-center gap-2">
+        <form method="get" class="d-flex align-items-center gap-2">
+            {% if selected_property_id or search_query or show_active_only %}
+            <a href="{% url 'tenants' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+            {% endif %}
+            <input 
+                type="text" 
+                name="search" 
+                class="form-control form-control-sm" 
+                placeholder="Search by name or email..." 
+                value="{{ search_query }}"
+                style="min-width: 240px;"
+                onkeypress="if(event.key === 'Enter') this.form.submit();"
+            >
+            <select name="property" id="property-select" class="form-select form-select-sm" style="min-width: 240px;" onchange="this.form.submit()">
+                <option value="">All properties</option>
+                {% for prop in properties %}
+                <option value="{{ prop.id }}" {% if selected_property_id == prop.id %}selected{% endif %}>
+                    {{ prop.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <select name="active" id="active-select" class="form-select form-select-sm" style="min-width: 180px;" onchange="this.form.submit()">
+                <option value="">All tenants</option>
+                <option value="true" {% if show_active_only %}selected{% endif %}>Active tenants only</option>
+            </select>
+            <button type="submit" class="btn btn-outline-primary btn-sm">Search</button>
+            <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2">
+                {{ tenants|length }} total
+            </span>
+        </form>
+    </div>
 </div>
 
 {% if tenants %}
@@ -73,9 +105,15 @@
     <div class="card shadow-sm card-rounded">
         <div class="card-body text-center py-5">
             <div class="display-6 mb-3">👥</div>
+            {% if search_query or selected_property_id or show_active_only %}
+            <h2 class="h5 fw-semibold mb-2">No tenants found</h2>
+            <p class="text-muted mb-3">Try adjusting your search or filter criteria.</p>
+            <a href="{% url 'tenants' %}" class="btn btn-outline-secondary">Clear Filters</a>
+            {% else %}
             <h2 class="h5 fw-semibold mb-2">No tenants yet</h2>
-            <p class="text-muted mb-3">Tenants appear here once they've been assigned to a unit.</p>
-            <a href="{% url 'index' %}" class="btn btn-primary">Go to Units</a>
+            <p class="text-muted mb-3">Add a tenant to see them listed here.</p>
+            <a href="{% url 'tenant_add' %}" class="btn btn-primary">Add Tenant</a>
+            {% endif %}
         </div>
     </div>
 {% endif %}

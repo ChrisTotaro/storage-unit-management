@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.contrib import messages
 
 from ..models import Property, Unit, Tenancies
-from ..forms import UnitForm, TenancyForm
+from ..forms import UnitForm, TenancyForm, TenantForm
 
 
 def _get_units_context(request, property_id=None, status=None):
@@ -173,6 +173,9 @@ class UnitDetailView(LoginRequiredMixin, View):
         # Create tenancy form for assigning tenant
         tenancy_form = TenancyForm(initial={"monthly_rent_at_start": unit.monthly_rent}, user=request.user)
         
+        # Create tenant form for creating new tenant
+        tenant_form = TenantForm()
+        
         return render(
             request,
             "storage/units/detail.html",
@@ -184,6 +187,7 @@ class UnitDetailView(LoginRequiredMixin, View):
                 "selected_status": status,
                 "current_tenancy": current_tenancy,
                 "tenancy_form": tenancy_form,
+                "tenant_form": tenant_form,
             },
         )
 
@@ -316,6 +320,9 @@ class UnitAssignTenantView(LoginRequiredMixin, View):
             .first()
         )
         
+        # Create tenant form for creating new tenant
+        tenant_form = TenantForm()
+        
         return render(
             request,
             "storage/units/detail.html",
@@ -327,6 +334,7 @@ class UnitAssignTenantView(LoginRequiredMixin, View):
                 "selected_status": status,
                 "current_tenancy": current_tenancy,
                 "tenancy_form": form,
+                "tenant_form": tenant_form,
             },
         )
 
@@ -376,4 +384,149 @@ class UnitRemoveTenantView(LoginRequiredMixin, View):
             redirect_url += "?" + "&".join(params)
         
         return redirect(redirect_url)
+
+
+class UnitCreateAndAssignTenantView(LoginRequiredMixin, View):
+    login_url = "account_login"
+    redirect_field_name = "next"
+
+    def post(self, request, unit_id):
+        unit = get_object_or_404(
+            Unit.objects.filter(property__user=request.user),
+            id=unit_id
+        )
+        
+        # Get tenant form data
+        tenant_form = TenantForm(request.POST)
+        
+        # Validate tenant form
+        tenant_valid = tenant_form.is_valid()
+        
+        # Validate tenancy fields manually (since we don't have a tenant yet)
+        from datetime import datetime
+        from decimal import Decimal, InvalidOperation
+        
+        tenancy_errors = {}
+        start_date = None
+        end_date = None
+        monthly_rent = None
+        
+        # Validate start_date
+        start_date_str = request.POST.get("start_date")
+        if not start_date_str:
+            tenancy_errors["start_date"] = ["This field is required."]
+        else:
+            try:
+                start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                tenancy_errors["start_date"] = ["Enter a valid date."]
+        
+        # Validate end_date
+        end_date_str = request.POST.get("end_date")
+        if not end_date_str:
+            tenancy_errors["end_date"] = ["This field is required."]
+        else:
+            try:
+                end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+                if start_date and end_date < start_date:
+                    tenancy_errors["end_date"] = ["End date must be after start date."]
+            except ValueError:
+                tenancy_errors["end_date"] = ["Enter a valid date."]
+        
+        # Validate monthly_rent_at_start
+        monthly_rent_str = request.POST.get("monthly_rent_at_start", unit.monthly_rent)
+        try:
+            monthly_rent = Decimal(str(monthly_rent_str))
+            if monthly_rent < 0:
+                tenancy_errors["monthly_rent_at_start"] = ["Monthly rent must be positive."]
+        except (InvalidOperation, ValueError):
+            tenancy_errors["monthly_rent_at_start"] = ["Enter a valid number."]
+        
+        tenancy_valid = len(tenancy_errors) == 0
+        
+        if tenant_valid and tenancy_valid:
+            # Create the tenant
+            tenant = tenant_form.save(commit=False)
+            tenant.user = request.user
+            tenant.save()
+            
+            # Create the tenancy and assign to unit
+            tenancy = Tenancies(
+                tenant=tenant,
+                unit=unit,
+                start_date=start_date,
+                end_date=end_date,
+                monthly_rent_at_start=monthly_rent,
+                notes=request.POST.get("notes", ""),
+            )
+            tenancy.save()
+            
+            # Update unit status to occupied
+            unit.status = Unit.STATUS_OCCUPIED
+            unit.save()
+            
+            messages.success(request, f"Tenant {tenant.first_name} {tenant.last_name} created and assigned successfully.")
+            
+            # Build redirect URL with filters
+            raw_property_id = request.GET.get("property")
+            property_id = _normalize_property_id(raw_property_id)
+            raw_status = request.GET.get("status")
+            status = _normalize_status_id(raw_status)
+            
+            redirect_url = reverse("unit_detail", kwargs={"unit_id": unit_id})
+            params = []
+            if property_id:
+                params.append(f"property={property_id}")
+            if status:
+                params.append(f"status={status}")
+            if params:
+                redirect_url += "?" + "&".join(params)
+            
+            return redirect(redirect_url)
+        
+        # If forms are invalid, re-render the detail page with errors
+        raw_property_id = request.GET.get("property")
+        property_id = _normalize_property_id(raw_property_id)
+        raw_status = request.GET.get("status")
+        status = _normalize_status_id(raw_status)
+        
+        properties, units = _get_units_context(request, property_id, status)
+        
+        # Get current tenancy
+        current_tenancy = (
+            Tenancies.objects.filter(unit=unit)
+            .select_related("tenant")
+            .order_by("-start_date")
+            .first()
+        )
+        
+        # Re-create tenancy form with POST data and add manual errors
+        from django.http import QueryDict
+        tenancy_post_data = QueryDict(mutable=True)
+        tenancy_post_data.update({
+            "tenant": "",
+            "start_date": request.POST.get("start_date", ""),
+            "end_date": request.POST.get("end_date", ""),
+            "monthly_rent_at_start": request.POST.get("monthly_rent_at_start", unit.monthly_rent),
+            "notes": request.POST.get("notes", ""),
+        })
+        tenancy_form = TenancyForm(tenancy_post_data, user=request.user)
+        # Add manual validation errors
+        for field, errors in tenancy_errors.items():
+            tenancy_form.add_error(field, errors)
+        
+        return render(
+            request,
+            "storage/units/detail.html",
+            {
+                "unit": unit,
+                "units": units,
+                "properties": properties,
+                "selected_property_id": property_id,
+                "selected_status": status,
+                "current_tenancy": current_tenancy,
+                "tenancy_form": tenancy_form,
+                "tenant_form": tenant_form,
+            },
+        )
 

@@ -15,6 +15,15 @@
         transform: translateY(-2px);
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     }
+    .metric-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+    .metric-card-link:hover {
+        color: inherit;
+    }
     .metric-icon {
         width: 48px;
         height: 48px;
@@ -94,62 +103,70 @@
 <div class="row g-4 mb-4">
     <!-- Total Properties -->
     <div class="col-md-6 col-lg-3">
-        <div class="card metric-card shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <div class="metric-icon bg-primary bg-opacity-10 text-primary">
-                        🏢
+        <a href="{% url 'property_list' %}" class="metric-card-link">
+            <div class="card metric-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="metric-icon bg-primary bg-opacity-10 text-primary">
+                            🏢
+                        </div>
                     </div>
+                    <div class="metric-value text-primary">{{ total_properties }}</div>
+                    <div class="metric-label">Total Properties</div>
                 </div>
-                <div class="metric-value text-primary">{{ total_properties }}</div>
-                <div class="metric-label">Total Properties</div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Total Units -->
     <div class="col-md-6 col-lg-3">
-        <div class="card metric-card shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <div class="metric-icon bg-info bg-opacity-10 text-info">
-                        📦
+        <a href="{% url 'index' %}" class="metric-card-link">
+            <div class="card metric-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="metric-icon bg-info bg-opacity-10 text-info">
+                            📦
+                        </div>
                     </div>
+                    <div class="metric-value text-info">{{ total_units }}</div>
+                    <div class="metric-label">Total Units</div>
                 </div>
-                <div class="metric-value text-info">{{ total_units }}</div>
-                <div class="metric-label">Total Units</div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Occupied Units -->
     <div class="col-md-6 col-lg-3">
-        <div class="card metric-card shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <div class="metric-icon bg-success bg-opacity-10 text-success">
-                        ✅
+        <a href="{% url 'index' %}?status=occupied" class="metric-card-link">
+            <div class="card metric-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="metric-icon bg-success bg-opacity-10 text-success">
+                            ✅
+                        </div>
                     </div>
+                    <div class="metric-value text-success">{{ occupied_units }}</div>
+                    <div class="metric-label">Occupied Units</div>
                 </div>
-                <div class="metric-value text-success">{{ occupied_units }}</div>
-                <div class="metric-label">Occupied Units</div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Vacant Units -->
     <div class="col-md-6 col-lg-3">
-        <div class="card metric-card shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <div class="metric-icon bg-warning bg-opacity-10 text-warning">
-                        ⚠️
+        <a href="{% url 'index' %}?status=vacant" class="metric-card-link">
+            <div class="card metric-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="metric-icon bg-warning bg-opacity-10 text-warning">
+                            ⚠️
+                        </div>
                     </div>
+                    <div class="metric-value text-warning">{{ vacant_units }}</div>
+                    <div class="metric-label">Vacant Units</div>
                 </div>
-                <div class="metric-value text-warning">{{ vacant_units }}</div>
-                <div class="metric-label">Vacant Units</div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
@@ -190,17 +207,19 @@
 
     <!-- Total Tenants -->
     <div class="col-md-6 col-lg-4">
-        <div class="card metric-card shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <div class="metric-icon bg-info bg-opacity-10 text-info">
-                        👥
+        <a href="{% url 'tenants' %}?active=true" class="metric-card-link">
+            <div class="card metric-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="metric-icon bg-info bg-opacity-10 text-info">
+                            👥
+                        </div>
                     </div>
+                    <div class="metric-value text-info">{{ active_tenant_count }}</div>
+                    <div class="metric-label">Active Tenants</div>
                 </div>
-                <div class="metric-value text-info">{{ active_tenant_count }}</div>
-                <div class="metric-label">Active Tenants</div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
